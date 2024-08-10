@@ -1,0 +1,12 @@
+python.exe -m pip install --upgrade pip
+pip install pipx
+pipx install poetry
+poetry new terminal-based-games-builder
+poetry add --group dev pytest
+poetry add --group dev pytest-cov
+poetry add --group dev blue
+poetry add --group dev isort
+poetry add --group dev taskipy
+poetry add --group doc mkdocs-material
+poetry add --group doc mkdocstrings
+poetry add --group doc mkdocstrings-python
