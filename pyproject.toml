@@ -1,12 +1,34 @@
 [tool.poetry]
 name = "terminal-based-games-builder"
 version = "0.1.0"
-description = ""
+description = "This repository hosts a tool that builds code for terminal-based games."
 authors = ["DG Costa <costadiegus@gmail.com>"]
 readme = "README.md"
+packages = [{include = "terminal_based_games_builder"}]
+classifiers = [
+    "Topic :: Education",
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Framework :: CrewAI",
+]
+
+
+[tool.poetry.urls]
+"Documentação" = "https://github.com/costadiegus/terminal-based-games-builder"
+"Código" = "https://github.com/costadiegus/terminal-based-games-builder"
+"Bug Tracker" = "https://github.com/costadiegus/terminal-based-games-builder/issues"
+
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<=3.13"
+crewai = "^0.41.1"
+crewai-tools = "^0.4.26"
+langchain-openai = "^0.1.20"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -21,7 +43,22 @@ taskipy = "^1.13.0"
 mkdocs-material = "^9.5.31"
 mkdocstrings = "^0.25.2"
 mkdocstrings-python = "^1.10.7"
+mkdocs = "^1.6.0"
+mkdocs-macros-plugin = "^1.0.5"
+jinja2 = "^3.1.4"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+line_length = 79
+
+[tool.taskipy.tasks]
+lint = "blue --check --diff . && isort --check --diff ."
+docs = "mkdocs serve"
+pre_test = "task lint"
+test = "pytest -s -x --cov=terminal_based_games_builder -vv"
+post_test = "coverage html"
+publish = "poetry publish -u __token__ -p $TOKEN"

@@ -1,0 +1,40 @@
+site_name: Terminal Based Games Builder Docs
+repo_url: https://github.com/costadiegus/terminal-based-games-builder
+repo_name: costadiegus/terminal-based-games-builder
+edit_uri: tree/main/docs
+
+theme:
+  name: material
+  language: pt-BR
+  logo: assets/logo.png
+  favicon: assets/logo.png
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - pymdownx.tasklist
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra_css:
+  - stylesheets/extra.css
+
+watch:
+   - terminal_based_games_builder
+
+plugins:
+- macros
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [terminal_based_games_builder]
+
+extra:
+  commands:
+    run: terminal-based-games-builder
