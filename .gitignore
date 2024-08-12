@@ -166,3 +166,4 @@ _note*.txt
 _test*.py
 *.bkp
 *.old
+output/
