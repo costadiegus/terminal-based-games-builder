@@ -56,6 +56,10 @@ llama_3 = ChatGroq(
 gpt_4o = ChatOpenAI(model_name="gpt-4o")
 gpt_4o_mini = ChatOpenAI(model_name="gpt-4o-mini")
 
+# Definindo LLM e rpm maximo padrao
+DEFAULT_LLM = gpt_4o_mini
+DEFAULT_MAX_RPM = None
+
 # Ferramenta de pesquisa na internet
 search_tool = SerperDevTool()
 scrape_tool = ScrapeWebsiteTool()
@@ -74,7 +78,7 @@ pesquisador_design_jogos = Agent(
     verbose=True,
     memory=True,
     tools=[search_tool],  # Utiliza ferramentas de pesquisa e LLM
-    llm=llama_3,  # Liga o LLM diretamente ao agente
+    llm=DEFAULT_LLM,  # Liga o LLM diretamente ao agente
     allow_delegation=False,
 )
 
@@ -88,6 +92,7 @@ tarefa_pesquisa_jogo = Task(
     tools=[search_tool],  # Ferramentas usadas para a pesquisa
     agent=pesquisador_design_jogos,
     output_file="pesquisa_design_jogo.md",  # O nome do arquivo de saída
+    logger=logger,
 )
 
 # 2. Pesquisador de Interface de Usuário (UI) para Jogos de Terminal
@@ -105,13 +110,13 @@ pesquisador_ui_terminal = Agent(
     verbose=True,
     memory=True,
     tools=[search_tool],  # Utiliza ferramentas de pesquisa e LLM
-    llm=llama_3,  # Liga o LLM diretamente ao agente
+    llm=DEFAULT_LLM,  # Liga o LLM diretamente ao agente
     allow_delegation=False,
 )
 
 tarefa_proposta_ui = Task(
     description=(
-        "Com base na pesquisa realizada pelo agente 'pesquisador_design_jogos' sobre o jogo {jogo}, "
+        "Com base na pesquisa realizada pelo agente 'Pesquisador de Design de Jogos' sobre o jogo {jogo}, "
         "desenvolva uma proposta detalhada de Interface de Usuário para a versão de terminal do jogo. "
         "A proposta deve incluir seções sobre Exibição de Estado, Comandos do Usuário e Feedback ao Jogador. "
         "O objetivo é orientar o desenvolvimento de uma versão de terminal do jogo informado."
@@ -123,6 +128,7 @@ tarefa_proposta_ui = Task(
     tools=[search_tool],  # Ferramenta usada para gerar a proposta baseada na pesquisa
     agent=pesquisador_ui_terminal,
     output_file="proposta_ui_terminal.md",  # O nome do arquivo de saída
+    logger=logger,
 )
 
 # 3. Engenheiro de Software para Jogos de Terminal
@@ -139,13 +145,13 @@ engenheiro_software_terminal = Agent(
     verbose=True,
     memory=True,
     # tools=[search_tool],  # Utiliza ferramentas de pesquisa e LLM
-    llm=llama_3,  # Liga o LLM diretamente ao agente
+    llm=DEFAULT_LLM,  # Liga o LLM diretamente ao agente
     allow_delegation=False,
 )
 
 tarefa_documentacao_codigo = Task(
     description=(
-        "Com base na pesquisa realizada pelo agente 'pesquisador_design_jogos' e na proposta realizada pelo 'pesquisador_ui_terminal' "
+        "Com base na pesquisa realizada pelo agente 'Pesquisador de Design de Jogos' e na proposta realizada pelo 'Pesquisador de UI para Jogos de Terminal' "
         "sobre o jogo {jogo}, desenvolva uma documentação detalhada em Markdown abordando a estrutura de código recomendada. "
         "A documentação deve cobrir organização em classes (ex.: `Carta`, `Baralho`, `Jogador`, `Tabuleiro`), lógica de jogo "
         "(regras, verificações, turnos), e gerenciamento de estado (estado atual do jogo, controle de turnos, etc.)."
@@ -156,6 +162,7 @@ tarefa_documentacao_codigo = Task(
     # tools=[search_tool],  # Ferramenta usada para gerar a documentação
     agent=engenheiro_software_terminal,
     output_file="documentacao_estrutura_codigo.md",  # O nome do arquivo de saída
+    logger=logger,
 )
 
 # 4. Agente Criador de Prompts para DALL-E
@@ -168,7 +175,8 @@ criador_prompt_dalle = Agent(
         "Você é um especialista em criar descrições detalhadas e imaginativas que "
         "permitem ao DALL-E gerar imagens impressionantes com base em textos."
     ),
-    llm=llama_3,
+    llm=DEFAULT_LLM,
+    allow_delegation=False,
 )
 
 tarefa_criacao_prompt_dalle = Task(
@@ -227,6 +235,56 @@ tarefa_revisao = Task(
     output_file="especificacao_jogo.md",  # Configurando o output para salvar em um arquivo Markdown
 )
 
+# 7. Agente Desenvolvedor de Software
+desenvolvedor_de_software = Agent(
+    role="Desenvolvedor de Software",
+    goal="Desenvolver código com base nas especificações fornecidas.",
+    backstory="Você é um desenvolvedor experiente, focado em transformar especificações técnicas em código funcional.",
+    verbose=True,
+    memory=True,
+    llm=DEFAULT_LLM,
+    allow_delegation=False,
+)
+
+tarefa_geracao_codigo = Task(
+    description=(
+        "Com base na documentação da estrutura de código feita pelo agente 'Engenheiro de Software para Jogos de Terminal' sobre o jogo {jogo}, "
+        "você vai desenvolver o código correspondente em Python referente à versão de terminal do jogo {jogo} "
+        "O código gerado deve ser limpo sem ```, sem marcações de Markdown ou comentários, apenas código Python."
+    ),
+    expected_output="Código-fonte em Python gerado com base no resumo das especificações.",
+    # tools=[llama_3],
+    agent=desenvolvedor_de_software,
+    # input_file=["resumo_especificacoes.md"],  # Resumo gerado pela primeira tarefa
+    output_file="gamelib.py",
+    logger=logger,
+)
+
+# 8. Agente Desenvolvedor de UI
+desenvolvedor_de_interface = Agent(
+    role="Desenvolvedor de Interface de Terminal",
+    goal="Desenvolver código com base nas especificações fornecidas.",
+    backstory="Você é um desenvolvedor experiente, focado em transformar especificações técnicas em código funcional.",
+    verbose=True,
+    memory=True,
+    llm=DEFAULT_LLM,
+    allow_delegation=False,
+)
+
+tarefa_desenvolvimento_interface = Task(
+    description=(
+        "Você criará um código que implementa a chamada às classes geradas pelo agente 'Desenvolvedor de Software' no arquivo 'gamelib.py' "
+        "e desenvolverá um navegação e interação do usuário com a versao de terminal do jogo {jogo}. "
+        "O código gerado deve ser limpo sem ```, sem marcações de Markdown ou comentários, apenas código Python."
+    ),
+    expected_output="Código-fonte em Python com a navegação e interação do usuário com a versao de terminal do jogo {jogo}.",
+    # tools=[llama_3],
+    agent=desenvolvedor_de_software,
+    # input_file=["resumo_especificacoes.md"],  # Resumo gerado pela primeira tarefa
+    output_file="game.py",
+    logger=logger,
+)
+
 # Formando a crew
 crew = Crew(
     agents=[
@@ -236,6 +294,8 @@ crew = Crew(
         # criador_prompt_dalle,
         # gerador_imagens,
         # revisor,
+        desenvolvedor_de_software,
+        desenvolvedor_de_interface,
     ],
     tasks=[
         tarefa_pesquisa_jogo,
@@ -244,13 +304,16 @@ crew = Crew(
         # tarefa_criacao_prompt_dalle,
         # tarefa_geracao_imagem,
         # tarefa_revisao,
+        tarefa_geracao_codigo,
+        tarefa_desenvolvimento_interface,
     ],
     verbose=True,
     logger=logger,
-    manager_llm=llama_3,
-    function_calling_llm=llama_3,
-    max_rpm=30,
+    manager_llm=DEFAULT_LLM,
+    function_calling_llm=DEFAULT_LLM,
+    max_rpm=DEFAULT_MAX_RPM,
     process=Process.sequential,  # Processamento sequencial das tarefas
+    allow_delegation=False,
 )
 
 jogo = input("Digite o nome do jogo: ")
