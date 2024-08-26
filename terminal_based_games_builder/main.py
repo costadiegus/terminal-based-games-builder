@@ -62,6 +62,10 @@ DEFAULT_MAX_RPM = None
 
 # Ferramenta de pesquisa na internet
 search_tool = SerperDevTool()
+search_tool.country = 'BR'
+search_tool.location = 'São Paulo'
+search_tool.locale = 'pt-BR'
+search_tool.n_results = 25
 scrape_tool = ScrapeWebsiteTool()
 
 # Ferramenta DALL-E com especificação de tamanho 16:9
