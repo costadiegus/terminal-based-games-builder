@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool  # , DallETool
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 import logging
@@ -56,15 +57,28 @@ llama_3 = ChatGroq(
 gpt_4o = ChatOpenAI(model_name="gpt-4o")
 gpt_4o_mini = ChatOpenAI(model_name="gpt-4o-mini")
 
+# Ollama
+"""
+os.environ["OPENAI_API_KEY"] = "NA"
+ollama = ChatOllama(
+    model="llama3.1",
+    base_url="http://localhost:11434",
+)"""
+ollama = ChatOpenAI(
+    model="llama3.1",
+    base_url="http://localhost:11434",
+)
+
+
 # Definindo LLM e rpm maximo padrao
 DEFAULT_LLM = gpt_4o_mini
 DEFAULT_MAX_RPM = None
 
 # Ferramenta de pesquisa na internet
 search_tool = SerperDevTool()
-search_tool.country = 'BR'
-search_tool.location = 'São Paulo'
-search_tool.locale = 'pt-BR'
+search_tool.country = "BR"
+search_tool.location = "São Paulo"
+search_tool.locale = "pt-BR"
 search_tool.n_results = 25
 scrape_tool = ScrapeWebsiteTool()
 
